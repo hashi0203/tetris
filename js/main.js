@@ -32,8 +32,15 @@ function helpCheck() {
 	window.open('./rules.html', '_blank');
 }
 
-var start = true;
-// var start = false;
+// var score = 0;
+// scoreTimer();
+// function scoreTimer(){
+// 	document.getElementById("score").textContent = "Your score is " + score;
+// 	setTimeout("msgTimer()", 10);
+// }
+
+// var start = true;
+var start = false;
 var cells = [];
 var blocks = {
 	i: {
@@ -155,6 +162,7 @@ function hasFallingBlock() {
 }
     
 function deleteRow() {
+	var tmpScore = 0;
 	for (var row = 19; row >= 0; row--) {
 		var canDelete = true;
 		for (var col = 0; col < 10; col++) {
@@ -164,6 +172,7 @@ function deleteRow() {
 			}
 		}
 		if (canDelete) {
+			tmpScore++;
 			for (var col = 0; col > 10; col++) {
 				cells[row][col].className = "";
 			}
@@ -175,7 +184,18 @@ function deleteRow() {
 					cells[downRow][col].blockNum = null;
 				}
 			}
+			row++;
 		}
+	}
+	if (tmpScore === 1) {
+		score++;
+		alert(score);
+	} else if (tmpScore ===2) {
+		score = score + 4;
+	} else if (tmpScore === 3) {
+		score = score + (score / 2);
+	} else if (tmpScore === 4) {
+		score = score * 2;
 	}
 }
 
@@ -196,8 +216,8 @@ function completeGeneration() {
 
 function generateBlock() {
 	var keys = Object.keys(blocks);
-	var nextBlockKey = keys[5];
-	// var nextBlockKey = keys[Math.floor(Math.random() * keys.length)];
+	// var nextBlockKey = keys[6];
+	var nextBlockKey = keys[Math.floor(Math.random() * keys.length)];
 	var nextBlock = blocks[nextBlockKey];
 	var nextFallingBlockNum = fallingBlockNum + 1;
 	var pattern = nextBlock.pattern;
@@ -1136,7 +1156,253 @@ function rotate() {
 			fallingBlockDir = (fallingBlockDir + 1) % 4;
 			return;
 		} else if (fallingBlockCls === "l"){
-			
+			if (fallingBlockDir === 0) {
+				var row;
+				var col;
+				for (var prow = 19; prow >= 0; prow--) {
+					for (var pcol = 0; pcol < 10; pcol++) {
+						if (cells[prow][pcol].blockNum === fallingBlockNum) {
+							row = prow;
+							col = pcol + 2;
+							for (var i = 0; i <= 2; i++) {
+								cells[row][col - i].className = "";
+								cells[row][col - i].blockNum = null;
+							}
+							cells[row - 1][col].className = "";
+							cells[row - 1][col].blockNum = null;
+							break;
+						}
+					}
+				}
+				if (row >= 2 && cells[row - 1][col - 1].className === "" && cells[row - 2][col - 1].className === "") {
+					col--;
+					for (var i = 0; i <= 2; i++) {
+						cells[row - i][col].className = fallingBlockCls;
+						cells[row - i][col].blockNum = fallingBlockNum;
+					}
+					cells[row][col + 1].className = fallingBlockCls;
+					cells[row][col + 1].blockNum = fallingBlockNum;
+				} else if (row >= 2 && cells[row - 1][col - 2].className === "" && cells[row - 2][col - 2].className === "") {
+					col = col - 2;
+					for (var i = 0; i <= 2; i++) {
+						cells[row - i][col].className = fallingBlockCls;
+						cells[row - i][col].blockNum = fallingBlockNum;
+					}
+					cells[row][col + 1].className = fallingBlockCls;
+					cells[row][col + 1].blockNum = fallingBlockNum;
+				} else if (row < 19 && cells[row + 1][col].className === "" && cells[row + 1][col - 1].className === "" && cells[row - 1][col - 1].className === "") {
+					row++;
+					col--;
+					for (var i = 0; i <= 2; i++) {
+						cells[row - i][col].className = fallingBlockCls;
+						cells[row - i][col].blockNum = fallingBlockNum;
+					}
+					cells[row][col + 1].className = fallingBlockCls;
+					cells[row][col + 1].blockNum = fallingBlockNum;
+				} else if (row < 19 && cells[row + 1][col - 1].className === "" && cells[row + 1][col - 2].className === "" && cells[row - 1][col - 2].className === "") {
+					row++;
+					col = col - 2;
+					for (var i = 0; i <= 2; i++) {
+						cells[row - i][col].className = fallingBlockCls;
+						cells[row - i][col].blockNum = fallingBlockNum;
+					}
+					cells[row][col + 1].className = fallingBlockCls;
+					cells[row][col + 1].blockNum = fallingBlockNum;
+				} else {
+					for (var i = 0; i <= 2; i++) {
+						cells[row][col - i].className = fallingBlockCls;
+						cells[row][col - i].blockNum = fallingBlockNum;
+					}
+					cells[row - 1][col].className = fallingBlockCls;
+					cells[row - 1][col].blockNum = fallingBlockNum;
+					return;
+				}
+			} else if (fallingBlockDir === 1) {
+			  var row;
+				var col;
+				for (var prow = 19; prow >= 0; prow--) {
+					for (var pcol = 0; pcol < 10; pcol++) {
+						if (cells[prow][pcol].blockNum === fallingBlockNum) {
+							row = prow;
+							col = pcol;
+							for (var i = 0; i <= 2; i++) {
+								cells[row - i][col].className = "";
+								cells[row - i][col].blockNum = null;
+							}
+							cells[row][col + 1].className = "";
+							cells[row][col + 1].blockNum = null;
+							break;
+						}
+					}
+				}
+				if (col > 0 && cells[row][col - 1].className === "" && cells[row - 1][col - 1].className === "" && cells[row - 1][col + 1].className === "") {
+					row--;
+					col--;
+					for (var i = 0; i <= 2; i++) {
+						cells[row][col + i].className = fallingBlockCls;
+						cells[row][col + i].blockNum = fallingBlockNum;
+					}
+					cells[row + 1][col].className = fallingBlockCls;
+					cells[row + 1][col].blockNum = fallingBlockNum;
+				} else if (col <= 7 && cells[row - 1][col + 1].className === "" && cells[row - 1][col + 2].className === "") {
+					row--;
+					for (var i = 0; i <= 2; i++) {
+						cells[row][col + i].className = fallingBlockCls;
+						cells[row][col + i].blockNum = fallingBlockNum;
+					}
+					cells[row + 1][col].className = fallingBlockCls;
+					cells[row + 1][col].blockNum = fallingBlockNum;
+				} else if (col > 0 && cells[row - 1][col - 1].className === "" && cells[row - 2][col - 1].className === "" && cells[row - 2][col + 1].className === "") {
+					row = row - 2;
+					col--;
+					for (var i = 0; i <= 2; i++) {
+						cells[row][col + i].className = fallingBlockCls;
+						cells[row][col + i].blockNum = fallingBlockNum;
+					}
+					cells[row + 1][col].className = fallingBlockCls;
+					cells[row + 1][col].blockNum = fallingBlockNum;
+				} else if (col <= 7 && cells[row - 2][col + 1].className === "" && cells[row - 2][col + 2].className === "") {
+					row = row - 2;
+					for (var i = 0; i <= 2; i++) {
+						cells[row][col + i].className = fallingBlockCls;
+						cells[row][col + i].blockNum = fallingBlockNum;
+					}
+					cells[row + 1][col].className = fallingBlockCls;
+					cells[row + 1][col].blockNum = fallingBlockNum;
+				} else {
+					for (var i = 0; i <= 2; i++) {
+						cells[row - i][col].className = fallingBlockCls;
+						cells[row - i][col].blockNum = fallingBlockNum;
+					}
+					cells[row][col + 1].className = fallingBlockCls;
+					cells[row][col + 1].blockNum = fallingBlockNum;
+					return;
+				}
+			} else if (fallingBlockDir === 2) {
+			  var row;
+				var col;
+				for (var prow = 19; prow >= 0; prow--) {
+					for (var pcol = 0; pcol < 10; pcol++) {
+						if (cells[prow][pcol].blockNum === fallingBlockNum) {
+							row = prow - 1;
+							col = pcol;
+							for (var i = 0; i <= 2; i++) {
+								cells[row][col + i].className = "";
+								cells[row][col + i].blockNum = null;
+							}
+							cells[row + 1][col].className = "";
+							cells[row + 1][col].blockNum = null;
+							break;
+						}
+					}
+				}
+				if (row >= 1 && cells[row + 1][col + 1].className === "" && cells[row - 1][col + 1].className === "" && cells[row - 1][col].className === "") {
+					row--;
+					col++;
+					for (var i = 0; i <= 2; i++) {
+						cells[row + i][col].className = fallingBlockCls;
+						cells[row + i][col].blockNum = fallingBlockNum;
+					}
+					cells[row][col - 1].className = fallingBlockCls;
+					cells[row][col - 1].blockNum = fallingBlockNum;
+				} else if (row >= 1 && cells[row + 1][col + 2].className === "" && cells[row - 1][col + 2].className === "" && cells[row - 1][col + 1].className === "") {
+					row--;
+					col = col + 2;
+					for (var i = 0; i <= 2; i++) {
+						cells[row + i][col].className = fallingBlockCls;
+						cells[row + i][col].blockNum = fallingBlockNum;
+					}
+					cells[row][col - 1].className = fallingBlockCls;
+					cells[row][col - 1].blockNum = fallingBlockNum;
+				} else if (row < 19 && cells[row + 1][col + 1].className === "" && cells[row + 2][col + 1].className === "") {
+					col++;
+					for (var i = 0; i <= 2; i++) {
+						cells[row + i][col].className = fallingBlockCls;
+						cells[row + i][col].blockNum = fallingBlockNum;
+					}
+					cells[row][col - 1].className = fallingBlockCls;
+					cells[row][col - 1].blockNum = fallingBlockNum;
+				} else if (row < 19 && cells[row + 1][col + 2].className === "" && cells[row + 2][col + 2].className === "") {
+					col = col + 2;
+					for (var i = 0; i <= 2; i++) {
+						cells[row + i][col].className = fallingBlockCls;
+						cells[row + i][col].blockNum = fallingBlockNum;
+					}
+					cells[row][col - 1].className = fallingBlockCls;
+					cells[row][col - 1].blockNum = fallingBlockNum;
+				} else {
+					for (var i = 0; i <= 2; i++) {
+						cells[row][col + i].className = fallingBlockCls;
+						cells[row][col + i].blockNum = fallingBlockNum;
+					}
+					cells[row + 1][col].className = fallingBlockCls;
+					cells[row + 1][col].blockNum = fallingBlockNum;
+					return;
+				}
+			} else if (fallingBlockDir === 3) {
+			  var row;
+				var col;
+				for (var prow = 19; prow >= 0; prow--) {
+					for (var pcol = 0; pcol < 10; pcol++) {
+						if (cells[prow][pcol].blockNum === fallingBlockNum) {
+							row = prow - 2;
+							col = pcol;
+							for (var i = 0; i <= 2; i++) {
+								cells[row + i][col].className = "";
+								cells[row + i][col].blockNum = null;
+							}
+							cells[row][col - 1].className = "";
+							cells[row][col - 1].blockNum = null;
+							break;
+						}
+					}
+				}
+				if (col < 9 && cells[row + 1][col + 1].className === "" && cells[row + 2][col + 1].className === "" && cells[row + 2][col - 1].className === "") {
+					row = row + 2;
+					col++;
+					for (var i = 0; i <= 2; i++) {
+						cells[row][col - i].className = fallingBlockCls;
+						cells[row][col - i].blockNum = fallingBlockNum;
+					}
+					cells[row - 1][col].className = fallingBlockCls;
+					cells[row - 1][col].blockNum = fallingBlockNum;
+				} else if (col >= 2 && cells[row + 2][col - 2].className === "" && cells[row + 2][col - 1].className === "") {
+					row = row + 2;
+					for (var i = 0; i <= 2; i++) {
+						cells[row][col - i].className = fallingBlockCls;
+						cells[row][col - i].blockNum = fallingBlockNum;
+					}
+					cells[row - 1][col].className = fallingBlockCls;
+					cells[row - 1][col].blockNum = fallingBlockNum;
+				} else if (col < 9 && cells[row][col + 1].className === "" && cells[row + 1][col + 1].className === "" && cells[row + 1][col - 1].className === "") {
+					row++;
+					col++;
+					for (var i = 0; i <= 2; i++) {
+						cells[row][col - i].className = fallingBlockCls;
+						cells[row][col - i].blockNum = fallingBlockNum;
+					}
+					cells[row - 1][col].className = fallingBlockCls;
+					cells[row - 1][col].blockNum = fallingBlockNum;
+				} else if (col >= 2 && cells[row + 1][col - 2].className === "" && cells[row + 1][col - 1].className === "") {
+					row++;
+					for (var i = 0; i <= 2; i++) {
+						cells[row][col - i].className = fallingBlockCls;
+						cells[row][col - i].blockNum = fallingBlockNum;
+					}
+					cells[row - 1][col].className = fallingBlockCls;
+					cells[row - 1][col].blockNum = fallingBlockNum;
+				} else {
+					for (var i = 0; i <= 2; i++) {
+						cells[row - i][col].className = fallingBlockCls;
+						cells[row - i][col].blockNum = fallingBlockNum;
+					}
+					cells[row][col - 1].className = fallingBlockCls;
+					cells[row][col - 1].blockNum = fallingBlockNum;
+					return;
+				}
+			}
+			fallingBlockDir = (fallingBlockDir + 1) % 4;
+			return;
 		}
 	}
 }
