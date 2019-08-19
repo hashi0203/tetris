@@ -1,8 +1,7 @@
 var msg = ["Hello World", "はじめてのJavaScript", "TETRISだよ"];
 var count = 0;
 var msgCount = 0;
-msgTimer();
-function msgTimer(){
+setInterval(function () {
 	count++;
 	msgCount = count%3;
 	if (msgCount === 1) {
@@ -10,8 +9,16 @@ function msgTimer(){
 	} else {
 		document.getElementById("hello_text").textContent = msg[msgCount];
 	}
-	setTimeout("msgTimer()", 5000);
-}
+}, 5000);
+
+// 矢印でスクロール禁止
+document.onkeydown = function(evt) {
+	evt = evt || window.event;
+	var keyCode = evt.keyCode;
+	if (keyCode >= 37 && keyCode <= 40) {
+			return false;
+	}
+};
 
 function startCheck() {
 	if (!start && confirm("Start TETRIS?")) {
@@ -20,7 +27,7 @@ function startCheck() {
 }
 function pauseCheck() {
 	if (start) {
-		alert("Pausing...\nRestart?");
+		alert("Pausing...\nRestart?\nScore is now " + score);
 	}
 }
 function resetCheck() {
@@ -32,16 +39,48 @@ function helpCheck() {
 	window.open('./rules.html', '_blank');
 }
 
-// var score = 0;
-// scoreTimer();
-// function scoreTimer(){
-// 	document.getElementById("score").textContent = "Your score is " + score;
-// 	setTimeout("msgTimer()", 10);
-// }
+var score = 0;
+var lines = 0;
+var combo = 0;
+var deleted_lines = 0;
+var del_count = 0;
+var level_count = 0;
+var level_flag = true;
+setInterval(function () {
+	document.getElementById("score").textContent = "Score: " + score;
+	document.getElementById("level").textContent = "Level " + level;
+	document.getElementById("lines").textContent = "Lines: " + lines;
+	document.getElementById("combo").textContent = "Combo: " + combo;
+	if (deleted_lines !== 0) {
+		if (deleted_lines === 1) {
+			document.getElementById("deleted_lines").textContent = deleted_lines + " line is deleted.";
+		} else {
+			document.getElementById("deleted_lines").textContent = deleted_lines + " lines are deleted.";
+		}
+		del_count++;
+		if (del_count === 200) {
+			deleted_lines = 0;
+			del_count = 0;
+		}
+	} else {
+		document.getElementById("deleted_lines").textContent = "";
+	}
+	if (start && level_flag) {
+		document.getElementById("print_level").textContent = "Level " + level;
+		level_count++;
+		if (level_count === 200) {
+			level_flag = false;
+			level_count = 0;
+		}
+	} else {
+		document.getElementById("print_level").textContent = "";
+	}
+}, 10);
 
-// var start = true;
 var start = false;
 var cells = [];
+var hold_cells = [];
+var next_cells = [];
 var blocks = {
 	i: {
 		class: "i",
@@ -94,13 +133,25 @@ var blocks = {
 	},
 }
 var generating = false;
+var fallingBlock = null;
 var fallingBlockNum = 0;
 var fallingBlockDir = 0;
 var fallingBlockPtn = [];
 var fallingBlockCls = null;
+var holdBlock = null;
+var holdBlockPtn = [];
+var holdFrag = true;
+var nextBlock = null;
+var nextBlockPtn = [];
+var level = 1;
 loadTable();
+setInterval(function () {play(1,20)}, 500);
+setInterval(function () {play(2,50)}, 400);
+setInterval(function () {play(3,100)}, 300);
+setInterval(function () {play(4,200)}, 200);
+
 setInterval(function () {
-	if (start) {
+	if (start && level === 5) {
 		if (generating) {
 			fallBlocks();
 			completeGeneration();
@@ -113,7 +164,7 @@ setInterval(function () {
 			generating = true;
 		}
 	}
-}, 500);
+}, 100);
 
 function loadTable() {
 	var td_array = document.getElementsByTagName("td");
@@ -123,6 +174,41 @@ function loadTable() {
 		for(var col = 0; col < 10; col++){
 			cells[row][col] = td_array[index];
 			index++;
+		}
+	}
+	for (var row = 0; row < 2; row++) {
+		hold_cells[row] = [];
+		for (var col = 0; col < 4; col++) {
+			hold_cells[row][col] = td_array[index];
+			index++;
+		}
+	}
+	for (var row = 0; row < 2; row++) {
+		next_cells[row] = [];
+		for (var col = 0; col < 4; col++) {
+			next_cells[row][col] = td_array[index];
+			index++;
+		}
+	}
+}
+
+function play(l,s) {
+	if (start && level === l) {
+		if (generating) {
+			fallBlocks();
+			completeGeneration();
+			generating = false;
+			holdFrag = true;
+		}	else if (hasFallingBlock()) {
+			fallBlocks();
+		} else {
+			deleteRow();
+			generateBlock();
+			generating = true;
+			if (score >= s) {
+				level = l + 1;
+				level_flag = true;
+			}
 		}
 	}
 }
@@ -160,9 +246,10 @@ var isFalling = false;
 function hasFallingBlock() {
 	return isFalling;
 }
-    
+
+var combo = 0;
 function deleteRow() {
-	var tmpScore = 0;
+	deleted_lines = 0;
 	for (var row = 19; row >= 0; row--) {
 		var canDelete = true;
 		for (var col = 0; col < 10; col++) {
@@ -172,39 +259,52 @@ function deleteRow() {
 			}
 		}
 		if (canDelete) {
-			tmpScore++;
+			deleted_lines++;
 			for (var col = 0; col > 10; col++) {
 				cells[row][col].className = "";
 			}
-			for (var downRow = row - 1; downRow >= 0; downRow--) {
+			if (row === 0) {
 				for (var col = 0; col < 10; col++) {
-					cells[downRow + 1][col].className = cells[downRow][col].className;
-					cells[downRow + 1][col].blockNum = cells[downRow][col].blockNum;
-					cells[downRow][col].class = "";
-					cells[downRow][col].blockNum = null;
+					cells[0][col].className = "";
+					cells[0][col].blockNum = null;
+				}
+			} else {
+				for (var downRow = row - 1; downRow >= 0; downRow--) {
+					for (var col = 0; col < 10; col++) {
+						cells[downRow + 1][col].className = cells[downRow][col].className;
+						cells[downRow + 1][col].blockNum = cells[downRow][col].blockNum;
+						cells[downRow][col].className = "";
+						cells[downRow][col].blockNum = null;
+					}
 				}
 			}
 			row++;
 		}
 	}
-	if (tmpScore === 1) {
-		score++;
-		alert(score);
-	} else if (tmpScore ===2) {
-		score = score + 4;
-	} else if (tmpScore === 3) {
-		score = score + (score / 2);
-	} else if (tmpScore === 4) {
-		score = score * 2;
+	if (deleted_lines === 1) {
+		score = score + 1 + combo * combo;
+		combo++;
+	} else if (deleted_lines ===2) {
+		score = score + 4 + combo * combo;
+		combo++;
+	} else if (deleted_lines === 3) {
+		score = score + 10 + combo * combo;
+		combo++;
+	} else if (deleted_lines === 4) {
+		score = score * 2 + combo * combo;
+		combo++;
+	} else {
+		combo = 0;
 	}
+	lines = lines + deleted_lines;
 }
 
 var rl = 3;
 function completeGeneration() {
-	for (var col= 0; col < fallingBlockPtn.length; col++) {
-		if (fallingBlockPtn[col]) {
+	for (var col= 0; col < fallingBlockPtn[0].length; col++) {
+		if (fallingBlockPtn[0][col]) {
 			if (cells[0][col + rl].className !== "") {
-				alert("game over");
+				alert("game over\nYour Score is " + score);
 				clearAll();
 				return;
 			}
@@ -218,17 +318,20 @@ function generateBlock() {
 	var keys = Object.keys(blocks);
 	// var nextBlockKey = keys[6];
 	var nextBlockKey = keys[Math.floor(Math.random() * keys.length)];
-	var nextBlock = blocks[nextBlockKey];
+	if (nextBlock === null) {
+		nextBlock = blocks[nextBlockKey];
+		nextBlockKey = keys[Math.floor(Math.random() * keys.length)];
+	}
 	var nextFallingBlockNum = fallingBlockNum + 1;
-	var pattern = nextBlock.pattern;
+	fallingBlock = nextBlock;
 	fallingBlockNum = nextFallingBlockNum;
 	fallingBlockDir = 0;
-	fallingBlockPtn = pattern[0];
+	fallingBlockPtn = nextBlock.pattern;
 	fallingBlockCls = nextBlock.class;
-	for (var col= 0; col < pattern[1].length; col++) {
-		if (pattern[1][col]) {
+	for (var col= 0; col < fallingBlockPtn[1].length; col++) {
+		if (fallingBlockPtn[1][col]) {
 			if (cells[0][col + 3].className !== "") {
-				alert("game over");
+				alert("game over\nYour Score is " + score);
 				clearAll();
 				return;
 			}
@@ -237,6 +340,18 @@ function generateBlock() {
 		}
 	}
 	isFalling = true;
+	nextBlock = blocks[nextBlockKey];
+	nextBlockPtn = nextBlock.pattern;
+	for (var row = 0; row < 2; row++) {
+		for (var col= 0; col < 4; col++) {
+			if (col < nextBlockPtn[0].length && nextBlockPtn[row][col]) {
+				next_cells[row][col].className = nextBlock.class;
+			} else {
+				next_cells[row][col].className = "none";
+
+			}
+		}
+	}
 	rl = 3;
 }
 
@@ -255,6 +370,10 @@ function onKeyDown(event) {
 		rotate();
 	} else if (event.keyCode === 32) {
 		hardDrop();
+	} else if (event.keyCode === 17) {
+		if (!generating && holdFrag) {
+			hold();
+		}
 	}
 }
 
@@ -1454,18 +1573,189 @@ function canMove(e) {
 	return true;
 }
 
+function hold() {
+	var nrow;
+	var ncol;
+	for (var prow = 0; prow < 20; prow++) {
+		for (var pcol = 0; pcol < 10; pcol++) {
+			if (cells[prow][pcol].blockNum === fallingBlockNum) {
+				nrow = prow;
+				ncol = pcol;
+				break;
+			}
+		}
+	}
+	if (holdBlock === null) {
+		// NEXTにあるブロックがはまるか確認
+		var ncol = canReplace(nrow,ncol,fallingBlockPtn);
+		if (ncol !== null) {
+			// 盤面のブロックを消す
+			for (var row = 0; row < 20; row++) {
+				for (var col = 9; col >= 0; col--) {
+					if (cells[row][col].blockNum === fallingBlockNum) {
+						cells[row][col].className = "";
+						cells[row][col].blockNum = null;
+					}
+				}
+			}
+			// 盤面のブロックをHOLDに
+			for (var row = 0; row < 2; row++) {
+				for (var col= 0; col < 4; col++) {
+					if (col < fallingBlockPtn[0].length && fallingBlockPtn[row][col]) {
+						hold_cells[row][col].className = fallingBlockCls;
+					} else {
+						hold_cells[row][col].className = "none";
+					}
+				}
+			}
+			holdBlock = fallingBlock;
+			holdBlockPtn = fallingBlockPtn;
+			// NEXTのブロックを盤面に
+			for (var j = 0; j < 2; j++) {
+				for (var k = 0; k < 4; k++) {
+					if (nextBlockPtn[1 - j][k]) {
+						cells[nrow - j][ncol + k].className = nextBlock.class;
+						cells[nrow - j][ncol + k].blockNum = fallingBlockNum;
+					}
+				}
+			}
+			fallingBlock = nextBlock;
+			fallingBlockCls = nextBlock.class;
+			fallingBlockPtn = nextBlockPtn;
+			fallingBlockDir = 0;
+
+			// 新しいブロックをNEXTに
+			var keys = Object.keys(blocks);
+			var nextBlockKey = keys[Math.floor(Math.random() * keys.length)];
+			nextBlock = blocks[nextBlockKey];
+			nextBlockPtn = nextBlock.pattern;
+			for (var row = 0; row < 2; row++) {
+				for (var col= 0; col < 4; col++) {
+					if (col < nextBlockPtn[0].length && nextBlockPtn[row][col]) {
+						next_cells[row][col].className = nextBlock.class;
+					} else {
+						next_cells[row][col].className = "none";
+					}
+				}
+			}
+			holdFrag = false;
+		}
+	} else {
+		// HOLDにあるブロックがはまるかどうか確認
+		var ncol = canReplace(nrow,ncol,holdBlockPtn);
+		if (ncol !== null) {
+			// HOLDの情報をtmpに保存
+			var tmpBlock = holdBlock;
+
+			// 盤面のブロックを消す
+			for (var row = 0; row < 20; row++) {
+				for (var col = 9; col >= 0; col--) {
+					if (cells[row][col].blockNum === fallingBlockNum) {
+						cells[row][col].className = "";
+						cells[row][col].blockNum = null;
+					}
+				}
+			}
+			
+			// 盤面のブロックをHOLDに
+			for (var row = 0; row < 2; row++) {
+				for (var col= 0; col < 4; col++) {
+					if (col < fallingBlockPtn[0].length && fallingBlockPtn[row][col]) {
+						hold_cells[row][col].className = fallingBlockCls;
+					} else {
+						hold_cells[row][col].className = "none";
+					}
+				}
+			}
+			holdBlock = fallingBlock;
+			holdBlockPtn = fallingBlockPtn;
+
+			// tmpのブロックを盤面に
+			for (var j = 0; j < 2; j++) {
+				for (var k = 0; k < 4; k++) {
+					if (tmpBlock.pattern[1 - j][k]) {
+						cells[nrow - j][ncol + k].className = tmpBlock.class;
+						cells[nrow - j][ncol + k].blockNum = fallingBlockNum;
+					}
+				}
+			}
+			fallingBlock = tmpBlock;
+			fallingBlockCls = tmpBlock.class;
+			fallingBlockPtn = tmpBlock.pattern;
+			fallingBlockDir = 0;
+
+			holdFrag = false;
+		}
+	}
+}
+
+function canReplace(row,col,pattern) {
+	var flag;
+	for (var h = 0; h < 2; h++) {
+		for (var i = 0; i < 3; i++) {
+			flag = true;
+			for (var j = 0; j < 2; j++) {
+				for (var k = 0; k < 4; k++) {
+					if ((cells[row - h - j][col + k - i].className !== "" && cells[row - h - j][col + k - i].blockNum !== fallingBlockNum) && pattern[1 - j][k]) {
+						flag = false;
+					}
+				}
+			}
+			if (flag) {
+				return (col - i);
+			}
+			flag = true;
+			for (var j = 0; j < 2; j++) {
+				for (var k = 0; k < 4; k++) {
+					if ((cells[row - h - j][col + k + i].className !== "" || cells[row - h - j][col + k + i].blockNum === fallingBlockNum) && pattern[1 - j][k]) {
+						flag = false;
+					}
+				}
+			}
+			if (flag) {
+				return (col + i);
+			}
+		}
+	}
+	return null;
+}
+
 function clearAll() {
 	generating = false;
+	fallingBlock = null;
 	fallingBlockNum = 0;
 	fallingBlockDir = 0;
-  fallingBlockPtn = [];
+	fallingBlockPtn = [];
 	fallingBlockCls = null;
 	start = false;
 	isFalling = false;
+	score = 0;
+	lines = 0;
+	combo = 0;
+	deleted_lines = 0;
+	del_count = 0;
+	level = 1;
+	level_flag = true;
+	level_count = 0;
+	holdBlock = null;
+	holdBlockPtn = [];
+	holdFrag = true;
+	nextBlock = null;
+	nextBlockPtn = [];
 	for (var row = 19; row >= 0; row--) {
 		for (var col = 0; col < 10; col++) {
 			cells[row][col].className = "";
 			cells[row][col].blockNum = null;
 		}
-	}  
+	}
+	for (var row = 0; row < 2; row++) {
+		for (var col= 0; col < 4; col++) {
+			hold_cells[row][col].className = "none";
+		}
+	}
+	for (var row = 0; row < 2; row++) {
+		for (var col= 0; col < 4; col++) {
+			next_cells[row][col].className = "none";
+		}
+	}
 }

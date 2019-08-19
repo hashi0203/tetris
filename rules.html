@@ -7,20 +7,41 @@
 		<link rel="stylesheet" href="./css/style.css">
   </head>
   <body>
-        <h1>TETRISの遊び方</h1><br>
-        <div class = "content">
-            <h2>ルール</h2> 
-            <h3>ミノと呼ばれるブロックを積み上げるゲーム。</h3>
-            <h3>一番上までミノが積みあがるとゲームオーバー。</h3>
-        </div><br>
-        <div class = "content">
-            <h2>操作方法</h2> 
-            <h3>右に移動：<span class="kbd">&rarr;</span></h3>
-            <h3>左に移動：<span class="kbd">&larr;</span></h3>
-            <h3>下に移動：<span class="kbd">&darr;</span></h3>
-            <h3>右回転：<span class="kbd">&uarr;</span> (注：ブロックがすべて見えている状態でないとできません。)</h3>
-            <h3>ハードドロップ：<span class="kbd">Space</span></h3>
-        </div>
-        
+		<h1>TETRISの遊び方</h1><br>
+		<div class = "content">
+			<h2>ルール</h2> 
+			<h3>ミノと呼ばれるブロックを積み上げるゲーム。</h3>
+			<h3>一番上までミノが積みあがるとゲームオーバー。</h3>
+		</div><br>
+		<div class = "content">
+			<h2>操作方法</h2> 
+			<h3>右に移動：<span class="kbd">&rarr;</span></h3>
+			<h3>左に移動：<span class="kbd">&larr;</span></h3>
+			<h3>下に移動：<span class="kbd">&darr;</span></h3>
+			<h3>右回転：<span class="kbd">&uarr;</span> (注：ミノがすべて見えている状態でないとできません。)</h3>
+			<h3>ハードドロップ：<span class="kbd">Space</span> (下まで一気に落とす。)</h3>
+			<h3>HOLD：<span class="kbd">Ctrl</span> (注：ミノがすべて見えている状態でないとできません。)</h3>
+			<h3>　HOLDにミノがない場合，HOLDには盤面にあったミノを入れ，NEXTのミノを盤面に出し，</h3>
+			<h3>　ランダムで次のミノを生成してNEXTに入れる。</h3>
+			<h3>　HOLDにミノがある場合，HOLDと盤面にあるミノを入れかえる。</h3>
+			<h3>　一度HOLDをすると，そのミノが落下している間HOLDを再度することはできない。</h3>
+		</div><br>
+		<div class = "content">
+			<h2>点数</h2> 
+			<h3>1列消し：1点</h3>
+			<h3>2列消し：4点</h3>
+			<h3>3列消し：10点</h3>
+			<h3>4列消し：得点2倍</h3>
+			<h3>連続消し：上の点数換算の後(連続回数-1)の2乗点追加</h3>
+			<h3>ex) 5点の時に3連続目の4列消しをした場合，得点2倍で10点になり，連続消しで(3-1)=2の2乗の4点を足して14点</h3>
+		</div><br>
+		<div class = "content">
+				<h2>レベル</h2> 
+				<h3>1：0~19点</h3>
+				<h3>2：20~49点</h3>
+				<h3>3：50~99点</h3>
+				<h3>4：100~199点</h3>
+				<h3>5：200点以上</h3>
+			</div>
   </body>
 </html>

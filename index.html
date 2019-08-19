@@ -6,7 +6,7 @@
 		<link rel="stylesheet" href="./css/style.css">
   </head>
   <body>
-		<h1 id="hello_text">"Hello World"</h1>
+		<h1 id="hello_text">Hello World</h1>
 		<div id="score"></div>
 		<table>
 			<tr> <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td> </tr>
@@ -36,6 +36,27 @@
 			<input type="button" value="reset" onclick="resetCheck();">
 			<input type="button" value="help" onclick="helpCheck();">
 		</div>
+		<div id="rep">
+			<div id="level"></div>
+			<div id="lines"></div>
+			<div id="combo"></div>
+			<div id="deleted_lines"></div>
+		</div>
+		<div id="hold">
+			HOLD
+			<table id="hold_table">
+				<tr> <td class="n"></td><td class="n"></td><td class="n"></td><td class="n"></td> </tr>
+				<tr> <td class="n"></td><td class="n"></td><td class="n"></td><td class="n"></td> </tr>	
+			</table>
+		</div>
+		<div id="next">
+			NEXT
+			<table id="next_table">
+				<tr> <td class="n"></td><td class="n"></td><td class="n"></td><td class="n"></td> </tr>
+				<tr> <td class="n"></td><td class="n"></td><td class="n"></td><td class="n"></td> </tr>	
+			</table>
+		</div>
+		<div id="print_level"></div>
 		<script src="./js/main.js"></script>
   </body>
 </html>
