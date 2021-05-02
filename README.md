@@ -7,7 +7,7 @@ I implemented tetris game in html, css and JavaScript.
 1. Clone this repository.
 
 ```bash
-git clone git@github.com:hashi0203/tetris.git
+git clone https://github.com/hashi0203/tetris.git
 ```
 
 2. Open index.html.
