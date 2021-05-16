@@ -1,14 +1,10 @@
-var msg = ["Hello World", "はじめてのJavaScript", "TETRISだよ"];
+var msg = ["TETRISだよ", "下の start ボタンで開始してね"];
 var count = 0;
 var msgCount = 0;
 setInterval(function () {
-	count++;
-	msgCount = count%3;
-	if (msgCount === 1) {
-		document.getElementById("hello_text").textContent = msg[msgCount] + "(" + count + ")";
-	} else {
-		document.getElementById("hello_text").textContent = msg[msgCount];
-	}
+        count++;
+        msgCount = count%2;
+        document.getElementById("hello_text").textContent = msg[msgCount];
 }, 5000);
 
 // 矢印でスクロール禁止
